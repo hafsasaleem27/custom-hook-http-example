@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
-const useTasks = async (url, method) => {
+const useTasks = (url, method) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tasks, setTasks] = useState([]);
 
-  setIsLoading(true);
-  setError(null);
-  if (method === "GET") {
+  const handleTasks = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method,
+      });
       if (!response.ok) {
         throw new Error("Request failed!");
       }
@@ -24,10 +26,16 @@ const useTasks = async (url, method) => {
 
       setTasks(loadedTasks);
     } catch (err) {
-        setError(err.message || 'Something went wrong!');
+      setError(err.message || "Something went wrong!");
     }
     setIsLoading(false);
-  }
+  }, [url, method]);
+
+  useEffect(() => {
+    handleTasks();
+  }, [handleTasks]);
+
+  return [isLoading, error, handleTasks];
 };
 
 export default useTasks;
