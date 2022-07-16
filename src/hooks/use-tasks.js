@@ -1,16 +1,17 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-const useTasks = (url, method) => {
+const useTasks = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [tasks, setTasks] = useState([]);
 
-  const handleTasks = useCallback(async () => {
+  const handleTasks = useCallback(async (requestConfig, applyData) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(url, {
-        method,
+      const response = await fetch(requestConfig.url, {
+        method: requestConfig.method ? requestConfig.method : 'GET',
+        body: requestConfig.body ? JSON.stringify(requestConfig.body) : null,
+        headers: requestConfig.headers ? requestConfig.headers : {},
       });
       if (!response.ok) {
         throw new Error("Request failed!");
@@ -18,22 +19,19 @@ const useTasks = (url, method) => {
 
       const data = await response.json();
 
-      const loadedTasks = [];
+      applyData(data);
+      // const loadedTasks = [];
 
-      for (const taskKey in data) {
-        loadedTasks.push({ id: taskKey, text: data[taskKey].text });
-      }
+      // for (const taskKey in data) {
+      //   loadedTasks.push({ id: taskKey, text: data[taskKey].text });
+      // }
 
-      setTasks(loadedTasks);
+      // setTasks(loadedTasks);
     } catch (err) {
       setError(err.message || "Something went wrong!");
     }
     setIsLoading(false);
-  }, [url, method]);
-
-  useEffect(() => {
-    handleTasks();
-  }, [handleTasks]);
+  }, []);
 
   return [isLoading, error, handleTasks];
 };
